@@ -1,0 +1,154 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.33.93.31351",
+      "templateHash": "15505456026913079018"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "allowedValues": [
+        "australiacentral",
+        "australiacentral2",
+        "australiaeast",
+        "australiasoutheast",
+        "brazilsouth",
+        "canadacentral",
+        "canadaeast",
+        "centralindia",
+        "centralus",
+        "eastasia",
+        "eastus",
+        "eastus2",
+        "francecentral",
+        "francesouth",
+        "germanynorth",
+        "germanywestcentral",
+        "israelcentral",
+        "italynorth",
+        "japaneast",
+        "japanwest",
+        "koreacentral",
+        "koreasouth",
+        "mexicocentral",
+        "newzealandnorth",
+        "northcentralus",
+        "northeurope",
+        "norwayeast",
+        "norwaywest",
+        "polandcentral",
+        "qatarcentral",
+        "southafricanorth",
+        "southafricawest",
+        "southcentralus",
+        "southeastasia",
+        "southindia",
+        "spaincentral",
+        "swedencentral",
+        "switzerlandnorth",
+        "switzerlandwest",
+        "uaecentral",
+        "uaenorth",
+        "uksouth",
+        "ukwest",
+        "westcentralus",
+        "westeurope",
+        "westindia",
+        "westus",
+        "westus2",
+        "westus3"
+      ],
+      "metadata": {
+        "description": "Container instance location to deploy as Tailscale [exit node](https://tailscale.com/kb/1103/exit-nodes)."
+      }
+    },
+    "tailscaleClientSecret": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Tailscale [OAuth client](https://tailscale.com/kb/1215/oauth-clients) secret, must have `auth_keys` and `devices:core`\nscopes and be assigned a tag with a value equal to the param `tailscaleTag` e.g. `tag:exitnode`."
+      }
+    },
+    "nodeLocation": {
+      "type": "string",
+      "metadata": {
+        "description": "The physical geolocation (as a country) of the node/data centre."
+      }
+    },
+    "tailscaleTag": {
+      "type": "string",
+      "defaultValue": "tag:exitnode",
+      "metadata": {
+        "description": "Tailscale tag to advertise as exit node. Must be defined in Tailscale policy \n[tagOwners](https://tailscale.com/kb/1337/acl-syntax#tag-owners), \n[autoApprovers.exitNode](https://tailscale.com/kb/1337/acl-syntax#autoapprovers)."
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.ContainerInstance/containerGroups",
+      "apiVersion": "2023-05-01",
+      "name": "[format('aci-tailscale-{0}', parameters('location'))]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "sku": "Standard",
+        "osType": "Linux",
+        "restartPolicy": "Never",
+        "ipAddress": {
+          "type": "Public",
+          "ports": [
+            {
+              "protocol": "UDP",
+              "port": 41641
+            }
+          ]
+        },
+        "containers": [
+          {
+            "name": "tailscale",
+            "properties": {
+              "image": "mcr.microsoft.com/azurelinux/base/core:3.0",
+              "resources": {
+                "requests": {
+                  "cpu": 1,
+                  "memoryInGB": 1
+                }
+              },
+              "ports": [
+                {
+                  "protocol": "UDP",
+                  "port": 41641
+                }
+              ],
+              "environmentVariables": [
+                {
+                  "name": "TAILSCALE_LOCATION",
+                  "value": "[parameters('location')]"
+                },
+                {
+                  "name": "NODE_LOCATION",
+                  "value": "[parameters('nodeLocation')]"
+                },
+                {
+                  "name": "TAILSCALE_TAG",
+                  "value": "[parameters('tailscaleTag')]"
+                },
+                {
+                  "name": "TAILSCALE_CLIENT_SECRET",
+                  "secureValue": "[parameters('tailscaleClientSecret')]"
+                }
+              ],
+              "command": [
+                "/bin/bash",
+                "-c",
+                "[join(createArray('tdnf update -yq && tdnf -yq install ca-certificates jq', 'echo \"Installing Tailscale...\"', 'curl -fsSL \"https://pkgs.tailscale.com/stable/$(curl -fsSL \"https://pkgs.tailscale.com/stable/?mode=json\" | jq -r \".Tarballs.amd64\")\" | bsdtar -xvzf - -C /usr/bin --strip-components 1 \"*/tailscale\" \"*/tailscaled\"', 'echo \"Starting Tailscale service...\"', 'tailscaled --state=mem: --tun=userspace-networking 2>/var/log/tailscaled.log &', 'tailscale status --json >/dev/null', 'tailscale version --daemon', 'echo \"Connecting to Tailscale...\"', 'tailscale up --hostname=\"WebwayGate-$NODE_LOCATION\" --authkey=\"$TAILSCALE_CLIENT_SECRET?preauthorized=true&ephemeral=true\" --accept-dns=\"false\" --advertise-exit-node --advertise-tags=\"$TAILSCALE_TAG\"', 'echo \"Connected to Tailscale\"', 'tailscale netcheck', 'tail -f /var/log/tailscaled.log &', 'trap \"tailscale down\" SIGTERM', 'sleep infinity &', 'pid=$!', 'wait $pid', 'echo \"Disconnecting from Tailscale...\"', 'tailscale down', 'echo \"Disconnected from Tailscale\"'), '\n')]"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
