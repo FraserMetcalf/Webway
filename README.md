@@ -1,5 +1,8 @@
 # Host your own global VPN on Azure PaaS using Tailscale
 
+Stolen directly from https://gist.github.com/maskati/446d72d751f90c4539db3adc4a7a664e
+Unfortunately I forked this in a really janky way (including some fiddling on my phone for some reason), so I ended up uploading my new version as a direct upload and thus the fork link is broken.
+
 This example shows setting up a Tailscale [exit node](https://tailscale.com/kb/1103/exit-nodes) running as a container on Azure Container Instances to provide global Internet egress. You can also use a similar setup to configure a Tailscale [subnet router](https://tailscale.com/kb/1019/subnets) which would allow access to Azure private Virtual Networks, private endpoints, private DNS zone resolution as well as Azure service endpoints.
 
 You can use exit nodes on [several platforms](https://tailscale.com/kb/1347/installation#install-and-update-instructions) including Android, iOS, Linux, macOS, tvOS and Windows.
