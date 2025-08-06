@@ -55,7 +55,7 @@ Deploy the Bicep [azure-vpn.bicep](#file-azure-vpn-bicep) or click the button be
 - `Tailscale Client Secret` the OAuth client secret from the previous step
 - `Tailscale Tag` can be left as `tag:exitnode` if you did not change this in the earlier configuration steps
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FFraserMetcalf%2FWebway%2Frefs%2Fheads%2Fmain%2Fazure-vpn.json%3Ftoken%3DGHSAT0AAAAAADIWHDJSYO5RJZBWRU6U5JMQ2ESZU7A)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FFraserMetcalf%2FWebway%2Frefs%2Fheads%2Fmain%2Fazure-vpn.json)
 
 > [!TIP]
 > Repeat with different `Location` values to deploy exit nodes at different Azure regions around the world.
